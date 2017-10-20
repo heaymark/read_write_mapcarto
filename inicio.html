@@ -9,8 +9,11 @@
     <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> -->
     <!-- <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script> -->
-    <link rel="stylesheet" href="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.15/themes/css/cartodb.css" />
-    <script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.15/cartodb.js"></script>
+    
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+    <!-- <link rel="stylesheet" href="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.15/themes/css/cartodb.css" /> -->
+    <!-- <script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.15/cartodb.js"></script> -->
     <link rel="stylesheet" href="libs/leaflet.css"/>
     <link rel="stylesheet" href="src/leaflet.draw.css"/>
     <script src="libs/leaflet-src.js"></script>
@@ -51,134 +54,192 @@
     <script src="src/edit/handler/EditToolbar.Delete.js"></script>
 </head>
 <body>
-
-<div id="map" style="width: 800px; height: 600px; border: 1px solid #ccc"></div>
+<div>
+    <select class="form-control deleg" name="selectDel">
+        <option value="">TODAS</option>
+        <option value="2" data-lat="19.4853167546877" data-lng="-99.1820729102214">AZCAPOTZALCO</option>
+        <option value="3" data-lat="19.3806362549985" data-lng="-99.1611326141866">BENITO JUAREZ</option>
+        <option value="1" data-lat="19.345588996402" data-lng="-99.2378692104112">ALVARO OBREGON</option>
+        <option value="16" data-lat="19.240217770539" data-lng="-99.0916576113265">XOCHIMILCO</option>
+        <option value="4" data-lat="19.3266341665147" data-lng="-99.150335760299">COYOACAN</option>
+        <option value="5" data-lat="19.3231754659492" data-lng="-99.3107267391573">CUAJIMALPA</option>
+        <option value="6" data-lat="19.4313723132379" data-lng="-99.1490420681939">CUAUHTEMOC</option>
+        <option value="7" data-lat="19.5040412420979" data-lng="-99.1158738074004">GUSTAVO A. MADERO</option>
+        <option value="8" data-lat="19.3969183944221" data-lng="-99.0943265445642">IZTACALCO</option>
+        <option value="9" data-lat="19.3490212121847" data-lng="-99.0565144863756">IZTAPALAPA</option>
+        <option value="10" data-lat="19.2699244753261" data-lng="-99.2726920780272">MAGDALENA CONTRERAS</option>
+        <option value="11" data-lat="19.4285038332166" data-lng="-99.2047202939644">MIGUEL HIDALGO</option>
+        <option value="12" data-lat="19.1400880550359" data-lng="-99.0482120531187">MILPA ALTA</option>
+        <option value="13" data-lat="19.2769497908826" data-lng="-99.0028123071402">TLAHUAC</option>
+        <option value="14" data-lat="19.1985168784299" data-lng="-99.2067309947676">TLALPAN</option>
+        <option value="15" data-lat="19.4305420760671" data-lng="-99.0929907962767">VENUSTIANO CARRANZA</option>
+    </select>
+</div>
+    <p></p>
+</div>
+<div id="map" style="width: 1200px; height: 600px; border: 1px solid #ccc"></div>
 <!-- <button id="changeColor">Rectangle -> Blue</button> -->
+
 <script>
+var cartolayer, sltfeature, lyrs, mkrInicial, lyrRadio, maps, objlayerBase, highlight, dehighlight, select, layerbase, paramlayerbase, parammapbase, viz, vizparam, el, layers, user, api_key, clickCircle5, clickCircle8;
+var geomTools;
+var drawControl;
+var layerbase = 'https://{s}.base.maps.api.here.com/maptile/2.1/maptile/newest/normal.day.grey/{z}/{x}/{y}/256/png8?lg=eng&token=A7tBPacePg9Mj_zghvKt9Q&app_id=KuYppsdXZznpffJsKT24';
+var paramlayerbase = {
+    minZoom: 0,
+    maxZoom: 20,
+    subdomains:"1234",
+    attribution: "&copy;2017 HERE <a href='http://here.net/services/terms' target='_blank'>Terms of use</a>"
+};
+ 
+var parammapbase = {
+    center: new L.LatLng(19.33123050921937,-99.09942626953125),
+    zoom : 10,
+    minZoom: 0,
+    maxZoom: 20,
+    attribution: "CARTO",
+}
 
-    var viz = "https://finanzasdf.carto.com/u/finanzasdf-admin/api/v2/viz/57d594e1-98b7-4db3-9bc7-426e584834d2/viz.json";
+var mapdiv =  'map';
 
-    var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            osm = L.tileLayer(osmUrl, {maxZoom: 20, attribution: osmAttrib}),
-            map = new L.Map('map', {layers: [osm], center: new L.LatLng(19.33123050921937,-99.09942626953125), zoom: 12});
+var param = {user : 'finanzasdf-admin',};
 
-    var drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
+var viz = "https://finanzasdf.carto.com/u/finanzasdf-admin/api/v2/viz/57d594e1-98b7-4db3-9bc7-426e584834d2/viz.json";
 
-    var where = " WHERE deleg='cMilpaAlta'";
+$(function(){
 
-    var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q=SELECT * FROM "finanzasdf-admin".sismo_capas_edit_seduvi'+where;
-    // console.log(strsql);
+    objlayerBase = L.tileLayer(layerbase,paramlayerbase);
+    map = new L.Map(mapdiv, parammapbase), map.addLayer(objlayerBase);
+    cartodb.createLayer(map,viz)
+        .addTo(map)
+        .on('done', function(layer){
+            lyrs = layer;
 
-    $.getJSON(strsql, function(data) {
-        // console.log(data);
-      geojsonLayer = L.geoJson(data, {
-        onEachFeature: function (feature, layer) {
-          layer.cartodb_id=feature.properties.cartodb_id;
-          drawnItems.addLayer(layer);
-        }
-      });
-      map.addLayer(drawnItems);
-    });
+        // var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        //         osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        //         osm = L.tileLayer(osmUrl, {maxZoom: 20, attribution: osmAttrib}),
+        //         map = new L.Map('map', {layers: [osm], center: new L.LatLng(19.33123050921937,-99.09942626953125), zoom: 12});
 
-    var drawControl = new L.Control.Draw({
-        position: 'topright',
-        draw: {
-            polyline: false,
-            polygon: false,
-            circle: false,
-            marker: true,
-            circlemarker: false,
-            rectangle: false
-        },
-        edit: {
-            featureGroup: drawnItems,
-            remove: false
-        }
-    });
-    map.addControl(drawControl);
-    // console.log("Recibida1 "+layer);
-
-    /*se cambio la funcion de edicion 
-    map.on(L.Draw.Event.EDITED, function (e) {
-        var layers = e.layers;
-        var countOfEditedLayers = 0;
-        layers.eachLayer(function (layer) {
-            countOfEditedLayers++;
+        }).error(function (err) {
+            
+            console.log(err);
         });
-        // console.log("Edited " + countOfEditedLayers + " layers");
-    });
-    */
 
-    map.on('draw:edited', function (e) {
-        var layers = e.layers;
-        // console.log(layers);
-        layers.eachLayer(function (layer) {
-            if (layer instanceof L.Marker){
-                //Do marker specific actions7 here
-                // console.log(layer._latlng.lng); //obtenemos la long
-                // console.log(layer._latlng.lat); //obtenemos la lat 
-                // console.log(layer.cartodb_id); //obtenemos id carto
-                // console.log(layer.feature.properties); //obtenemos los registros
-                // console.log(layer.feature.properties.cartodb_id); //obtenemos los cartoid
-                // console.log(JSON.stringify(layer._latlng));
-                // 
-                var sql = new cartodb.SQL({ user : 'finanzasdf-admin' });
 
-                var strsql ="UPDATE "+'"finanzasdf-admin"'+".sismo_capas_edit_seduvi SET the_geom = ST_SetSRID(st_makepoint("+layer._latlng.lng+", "+layer._latlng.lat+"),4326) WHERE cartodb_id = "+layer.cartodb_id;
-                // console.log(strsql);
-                $.getJSON("https://finanzasdf-admin.carto.com/api/v2/sql?q="+strsql+"&api_key=9636b95f3e6c01a780c65a869e491303ed330f9c", function(data){
-                // $.getJSON("https://finanzasdf-admin.carto.com/api/v2/sql?q="+strsql, function(data){
+            var drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
+
+            var where = " WHERE deleg='cMilpaAlta'";
+
+            var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q=SELECT * FROM "finanzasdf-admin".sismo_capas_edit_seduvi'+where;
+            // console.log(strsql);
+
+            $.getJSON(strsql, function(data) {
+                // console.log(data);
+              geojsonLayer = L.geoJson(data, {
+                onEachFeature: function (feature, layer) {
+                  layer.cartodb_id=feature.properties.cartodb_id;
+                  drawnItems.addLayer(layer);
+                }
+              });
+              map.addLayer(drawnItems);
+            });
+
+            var drawControl = new L.Control.Draw({
+                position: 'topleft',
+                draw: {
+                    polyline: false,
+                    polygon: false,
+                    circle: false,
+                    marker: false,
+                    circlemarker: false,
+                    rectangle: false
+                },
+                edit: {
+                    featureGroup: drawnItems,
+                    remove: false
+                }
+            });
+            map.addControl(drawControl);
+            // console.log("Recibida1 "+layer);
+
+            /*se cambio la funcion de edicion 
+            map.on(L.Draw.Event.EDITED, function (e) {
+                var layers = e.layers;
+                var countOfEditedLayers = 0;
+                layers.eachLayer(function (layer) {
+                    countOfEditedLayers++;
+                });
+                // console.log("Edited " + countOfEditedLayers + " layers");
+            });
+            */
+
+            map.on('draw:edited', function (e) {
+                var layers = e.layers;
+                // console.log(layers);
+                layers.eachLayer(function (layer) {
+                    if (layer instanceof L.Marker){
+                        //Do marker specific actions7 here
+                        // console.log(layer._latlng.lng); //obtenemos la long
+                        // console.log(layer._latlng.lat); //obtenemos la lat 
+                        // console.log(layer.cartodb_id); //obtenemos id carto
+                        // console.log(layer.feature.properties); //obtenemos los registros
+                        // console.log(layer.feature.properties.cartodb_id); //obtenemos los cartoid
+                        // console.log(JSON.stringify(layer._latlng));
+                        // 
+                        var sql = new cartodb.SQL({ user : 'finanzasdf-admin' });
+
+                        var strsql ="UPDATE "+'"finanzasdf-admin"'+".sismo_capas_edit_seduvi SET the_geom = ST_SetSRID(st_makepoint("+layer._latlng.lng+", "+layer._latlng.lat+"),4326) WHERE cartodb_id = "+layer.cartodb_id;
+                        // console.log(strsql);
+                        $.getJSON("https://finanzasdf-admin.carto.com/api/v2/sql?q="+strsql+"&api_key=9636b95f3e6c01a780c65a869e491303ed330f9c", function(data){
+                        // $.getJSON("https://finanzasdf-admin.carto.com/api/v2/sql?q="+strsql, function(data){
+                             $.each(data.rows, function(key, val) {
+                                 alert("llave "+key+" "+val);
+                             });
+                        });
+
+                        // var geom = "ST_SetSRID(ST_GeomFromGeoJSON('"+JSON.stringify(layer._latlng)+"'),4326)";    
+                        // var strsql ="UPDATE "+'"finanzasdf-admin"'+".sismo_capas_edit_seduvi SET (the_geom) VALUES ("+geom+") WHERE cartodb_id = "+layer.cartodb_id;
+                        // var strsql ="UPDATE "+'"finanzasdf-admin"'+".sismo_capas_edit_seduvi SET the_geom = ST_SetSRID(st_makepoint("+layer._latlng.lng+", "+layer._latlng.lat+"),4326) WHERE cartodb_id = "+layer.cartodb_id;
+                        // sql.execute("INSERT INTO "+'"finanzasdf-admin"'+" (capa, the_geom) VALUES (" + 2 +", "+lon+", '"+name+"', ST_SetSRID(ST_MakePoint(" + lon +", "+lat+"), 4326)) WHERE cartodb_id = "+layer.cartodb_id+"");
+                        console.log(strsql);
+                        // sql.execute(strsql);
+                        // map.redraw();
+                    }
+                });
+            });
+
+            // L.DomUtil.get('changeColor').onclick = function () {
+            //     drawControl.setDrawingOptions({rectangle: {shapeOptions: {color: '#004a80'}}});
+            // };
+
+            // map.on('click', function(e) {
+            //     alert("longitud"+e.latlng.lat+", latitud"+e.latlng.lng)
+               // $("#latitude").val(e.latlng.lat);
+               // $("#longitude").val(e.latlng.lng);
+            // });
+
+
+            /*function fn_savegeom(SqlJson){
+                alert(JSON.stringify(SqlJson));
+                var geom = "ST_SetSRID(ST_GeomFromGeoJSON('"+JSON.stringify(SqlJson)+"'),4326)";    
+                var sql_statement ="";
+                switch(SqlJson.type){
+                    case "Point":
+                        // sql_statement = "INSERT INTO digitalizacionpoint (description,name,the_geom) VALUES('prueba','prueba',"+geom+")"; 
+                        break
+                    case "Linestring":
+                        // sql_statement = "INSERT INTO digitalizacion (description,name,the_geom) VALUES('prueba','prueba',"+geom+")";
+                        break;
+                }
+                // $.getJSON('https://valrapa.cartodb.com/api/v2/sql/?q='+sql_statement+'&api_key=6433e4d1a9ba1f251b81f2cf70c8b34ec7e13344', function(data) {
+                $.getJSON('https://finanzasdf-admin.carto.com/api/v2/sql/?q='+sql_statement+'&api_key=9636b95f3e6c01a780c65a869e491303ed330f9c', function(data) {
                      $.each(data.rows, function(key, val) {
                          alert("llave "+key+" "+val);
                      });
                 });
-
-
-                // var geom = "ST_SetSRID(ST_GeomFromGeoJSON('"+JSON.stringify(layer._latlng)+"'),4326)";    
-                // var strsql ="UPDATE "+'"finanzasdf-admin"'+".sismo_capas_edit_seduvi SET (the_geom) VALUES ("+geom+") WHERE cartodb_id = "+layer.cartodb_id;
-                // var strsql ="UPDATE "+'"finanzasdf-admin"'+".sismo_capas_edit_seduvi SET the_geom = ST_SetSRID(st_makepoint("+layer._latlng.lng+", "+layer._latlng.lat+"),4326) WHERE cartodb_id = "+layer.cartodb_id;
-                // sql.execute("INSERT INTO "+'"finanzasdf-admin"'+" (capa, the_geom) VALUES (" + 2 +", "+lon+", '"+name+"', ST_SetSRID(ST_MakePoint(" + lon +", "+lat+"), 4326)) WHERE cartodb_id = "+layer.cartodb_id+"");
-                console.log(strsql);
-                // sql.execute(strsql);
-                // map.redraw();
-            }
-        });
-    });
-
-
-    // L.DomUtil.get('changeColor').onclick = function () {
-    //     drawControl.setDrawingOptions({rectangle: {shapeOptions: {color: '#004a80'}}});
-    // };
-
-    // map.on('click', function(e) {
-    //     alert("longitud"+e.latlng.lat+", latitud"+e.latlng.lng)
-       // $("#latitude").val(e.latlng.lat);
-       // $("#longitude").val(e.latlng.lng);
-    // });
-
-
-    /*function fn_savegeom(SqlJson){
-        alert(JSON.stringify(SqlJson));
-        var geom = "ST_SetSRID(ST_GeomFromGeoJSON('"+JSON.stringify(SqlJson)+"'),4326)";    
-        var sql_statement ="";
-        switch(SqlJson.type){
-            case "Point":
-                // sql_statement = "INSERT INTO digitalizacionpoint (description,name,the_geom) VALUES('prueba','prueba',"+geom+")"; 
-                break
-            case "Linestring":
-                // sql_statement = "INSERT INTO digitalizacion (description,name,the_geom) VALUES('prueba','prueba',"+geom+")";
-                break;
-        }
-        // $.getJSON('https://valrapa.cartodb.com/api/v2/sql/?q='+sql_statement+'&api_key=6433e4d1a9ba1f251b81f2cf70c8b34ec7e13344', function(data) {
-        $.getJSON('https://finanzasdf-admin.carto.com/api/v2/sql/?q='+sql_statement+'&api_key=9636b95f3e6c01a780c65a869e491303ed330f9c', function(data) {
-             $.each(data.rows, function(key, val) {
-                 alert("llave "+key+" "+val);
-             });
-        });
-    }*/
-
+            }*/
+});
 </script>
 </body>
 </html>
