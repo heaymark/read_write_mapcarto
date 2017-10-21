@@ -59,8 +59,8 @@
 </head>
 <body>
 <div>
-    <select class="form-control deleg" name="selectDel">
-        <option value="">TODAS</option>
+    <select class="form-control deleg" name="selectDel" id="selectDel">
+        <!-- <option value="">TODAS</option>
         <option value="2" data-lat="19.4853167546877" data-lng="-99.1820729102214">AZCAPOTZALCO</option>
         <option value="3" data-lat="19.3806362549985" data-lng="-99.1611326141866">BENITO JUAREZ</option>
         <option value="1" data-lat="19.345588996402" data-lng="-99.2378692104112">ALVARO OBREGON</option>
@@ -76,7 +76,7 @@
         <option value="12" data-lat="19.1400880550359" data-lng="-99.0482120531187">MILPA ALTA</option>
         <option value="13" data-lat="19.2769497908826" data-lng="-99.0028123071402">TLAHUAC</option>
         <option value="14" data-lat="19.1985168784299" data-lng="-99.2067309947676">TLALPAN</option>
-        <option value="15" data-lat="19.4305420760671" data-lng="-99.0929907962767">VENUSTIANO CARRANZA</option>
+        <option value="15" data-lat="19.4305420760671" data-lng="-99.0929907962767">VENUSTIANO CARRANZA</option> -->
     </select>
 </div>
     <p></p>
@@ -117,7 +117,16 @@ $(function(){
     cartodb.createLayer(map,viz)
         .addTo(map)
         .on('done', function(layer){
+            // if(navigator.geolocation){
+            //     navigator.geolocation.getCurrentPosition(coords);
+            // } else{
+            //     map.setView(new L.latLng(19.4292441,-99.1272684),13);
+            // }
             lyrs = layer;
+
+            // console.log(lyrs); // capas desde carto
+            // console.log(lyrs.layers[5].options.layer_name);//name table 
+            // console.log(lyrs.layers); // cantidad de capas  cargadas
 
         // var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         //         osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -129,25 +138,83 @@ $(function(){
             console.log(err);
         });
 
-
             var drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
 
-            var where = " WHERE deleg='cMilpaAlta'";
+            var objsql = new cartodb.SQL({ user : 'finanzasdf-admin' });
+                //Empieza LAS DELEGACIIONES
+                objsql.execute("SELECT * FROM delegaciones_df ORDER BY nombre ASC")
+                .on("done",function(data){
+                    $("<option />",{"value":"*","text":'Selecciona una delegacion...'}).appendTo("#selectDel");
+                        for(idx in data.rows){
+                            $("<option />",{"value":data.rows[idx].cartodb_id,"text":data.rows[idx].nombre}).appendTo("#selectDel");
+                        }//Fin for(idx in data.rows){
+                });//Fin .on("done",function(data){
 
-            var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q=SELECT * FROM "finanzasdf-admin".sismo_capas_edit_seduvi'+where;
-            // console.log(strsql);
+                $('#selectDel').on("change",function(e){
+                    var optiondelegacion = $("#selectDel").val();
+                       // var intersql = "SELECT COUNT(*) FROM delegaciones_df dlg INNER JOIN sismo_capas sis ON ST_Contains(sis.the_geom,dlg.the_geom) WHERE dlg.cartodb_id = "+optiondelegacion;
 
-            $.getJSON(strsql, function(data) {
-                // console.log(data);
-              geojsonLayer = L.geoJson(data, {
-                onEachFeature: function (feature, layer) {
-                  layer.cartodb_id=feature.properties.cartodb_id;
-                  drawnItems.addLayer(layer);
-                }
-              });
-              map.addLayer(drawnItems);
-            });
+                            // var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q=SELECT * FROM "finanzasdf-admin".sismo_capas_edit_seduvi'+where;
+                            // var intersql = "SELECT * FROM delegaciones_df dlg INNER JOIN sismo_capas sis ON ST_Contains(sis.the_geom,dlg.the_geom) WHERE dlg.cartodb_id = "+optiondelegacion;
+                            var intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
+                            // strsql = "SELECT COUNT(*) FROM alertas_alto_bajo_impacto alert INNER JOIN sectores sec ON ST_Contains(sec.the_geom,alert.the_geom) WHERE sec.nombre = '"+optionSectores+"'";
+                            
+                            // console.log(intersql);
+                            var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q='+intersql;
+                            
+                            // console.log(strsql);//consulta con api
+                            var semaforo;
+
+                            $.getJSON(strsql, function(data) {
+                                // console.log(data);
+                              geojsonLayer = L.geoJson(data, {
+                                onEachFeature: function (feature, layer) {
+                                  // console.log(layer);
+                                  // console.log(feature);
+                                    if (feature.geometry.type === 'Point') {
+                                        // layer.bindPopup('A popup!');
+                                        // feature.properties.clas_global
+                                        switch(feature.properties.clas_global) {
+                                            case 0:
+                                                semaforo = "Verde";
+                                                break;
+                                            case 1:
+                                                semaforo = "Rojo";
+                                                break;
+                                            case 2:
+                                                semaforo = "Amarillo";
+                                                break;
+                                            case 3:
+                                                semaforo = "Sin captura";
+                                                break;
+                                            case 4:
+                                                semaforo = "Rosa";
+                                                break;
+                                            case 'NULL':
+                                                semaforo = "N/P";
+                                        } 
+
+                                        layer.bindPopup("<b>ID carto: </b>"+feature.properties.cartodb_id+"<br>"+
+                                            "<b>Punto: </b>"+semaforo+"<br>"+
+                                            "<b>ID registro: </b>"+feature.properties.idregistro+"<br>"+
+                                            "<b>Latitud: </b>"+feature.properties.lat+"<br>"+
+                                            "<b>Longitud: </b>"+feature.properties.lng+"<br>");
+                                    }
+
+                                    // map.addLayer(layer);
+                                  layer.cartodb_id=feature.properties.cartodb_id;
+                                  drawnItems.addLayer(layer);
+                                }
+                              });
+                              map.addLayer(drawnItems);
+                            });
+
+                        bounry({user: "finanzasdf-admin"}, "delegaciones_df", "cartodb_id = "+optiondelegacion, "", map)
+
+                })
+
+            // var where = " WHERE deleg='cMilpaAlta'";
 
             var drawControl = new L.Control.Draw({
                 position: 'topleft',
@@ -166,6 +233,24 @@ $(function(){
             });
             map.addControl(drawControl);
             // console.log("Recibida1 "+layer);
+
+            // map.on(L.Draw.Event.CREATED, function (e) {
+            /*
+                map.on('draw:created', function (e) {
+                    var type = e.layerType,
+                    console.log(e.layerType);
+                        layer = e.layer;
+                        console.log(layer);
+                        // var layer = e.layers;
+
+                    if (type === 'marker') {
+                        layer.bindPopup('A popup!');
+                    }
+
+                    map.addLayer(layer);
+                });
+            */
+
 
             /*se cambio la funcion de edicion 
             map.on(L.Draw.Event.EDITED, function (e) {
@@ -190,7 +275,7 @@ $(function(){
                         // console.log(layer.feature.properties); //obtenemos los registros
                         // console.log(layer.feature.properties.cartodb_id); //obtenemos los cartoid
                         // console.log(JSON.stringify(layer._latlng));
-                        // 
+                                                
                         var sql = new cartodb.SQL({ user : 'finanzasdf-admin' });
 
                         var strsql ="UPDATE "+'"finanzasdf-admin"'+".sismo_capas_edit_seduvi SET the_geom = ST_SetSRID(st_makepoint("+layer._latlng.lng+", "+layer._latlng.lat+"),4326) WHERE cartodb_id = "+layer.cartodb_id;
@@ -243,6 +328,147 @@ $(function(){
                      });
                 });
             }*/
+        getPopupContent(lyrs);
+
+            
+
+        function getPopupContent(layer) {
+            // Marker - add lat/long
+            if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+                return strLatLng(layer.getLatLng());
+            // Circle - lat/long, radius
+            } else if (layer instanceof L.Circle) {
+                var center = layer.getLatLng(),
+                    radius = layer.getRadius();
+                return "Center: "+strLatLng(center)+"<br />"
+                      +"Radius: "+_round(radius, 2)+" m";
+            // Rectangle/Polygon - area
+            } else if (layer instanceof L.Polygon) {
+                var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+                    area = L.GeometryUtil.geodesicArea(latlngs);
+                return "Area: "+L.GeometryUtil.readableArea(area, true);
+            // Polyline - distance
+            } else if (layer instanceof L.Polyline) {
+                var latlngs = layer._defaultShape ? layer._defaultShape() : layer.getLatLngs(),
+                    distance = 0;
+                if (latlngs.length < 2) {
+                    return "Distance: N/A";
+                } else {
+                    for (var i = 0; i < latlngs.length-1; i++) {
+                        distance += latlngs[i].distanceTo(latlngs[i+1]);
+                    }
+                    return "Distance: "+_round(distance, 2)+" m";
+                }
+            }
+            return null;
+        };
+
+        /*
+            map.on(L.Draw.Event.CREATED, function(event) {
+            // map.on("draw.created", function(event) {
+                var layer = event.layer;
+                var content = getPopupContent(layer);
+                if (content !== null) {
+                    layer.bindPopup(content);
+                }
+                drawnItems.addLayer(layer);
+            });
+        */
+       
+        function coords(position){
+            var bounds = new cartodb.SQL({
+                user:'pedrovaldez'
+            })
+            var location =  "ST_GeographyFromText('POINT("+parseFloat(position.coords.longitude).toFixed(8)+" "+parseFloat(position.coords.latitude).toFixed(8)+")')";
+            bounds.execute("select ST_Distance(the_geom,"+location+") as distance,ST_X(the_geom) as X,ST_Y(the_geom) as Y,the_geom from pedrovaldez.wifi order by 1 limit 1")
+                .done(function(data){
+                    latInicial = parseFloat(position.coords.latitude).toFixed(8);
+                    lonInicial = parseFloat(position.coords.longitude).toFixed(8);
+                    ptInicial = new L.latLng(latInicial,lonInicial);
+                    ptFinal = new L.latLng(data.rows[0].y,data.rows[0].x);
+                    featureGroup = new L.featureGroup();
+
+                    iconPosicion = L.icon({
+                        iconUrl: 'libs/images/marker-icon-2x.png',
+                        iconRetinaUrl: 'libs/images/marker-icon-2x.png',
+                        // iconUrl: './img/ubicacion_persona.png',
+                        // iconRetinaUrl: './img/ubicacion_persona.png',
+                        iconSize: [64, 64],
+                        /*iconAnchor: [22, 94],
+                        popupAnchor: [-3, -76],
+                        shadowUrl: './img/posicion.jpg',
+                        shadowRetinaUrl: './img/posicion.jpg',
+                        shadowSize: [68, 95],
+                        shadowAnchor: [22, 94]*/
+                    });
+
+                    // iconWifi = L.icon({
+                        // iconUrl: './img/pointverde.jpg',
+                        // iconRetinaUrl: './img/pointverde.jpg',
+                        // iconSize: [64, 64]
+                    // });
+
+
+                    map.setView(ptInicial,13);          
+                    var mkrInicial = L.marker(ptInicial,{icon:iconPosicion});
+                    mkrInicial.addTo(map);
+                    // var mkrFinal = L.marker(ptFinal);
+                    // mkrFinal.addTo(map);
+                    
+            });
+        }
+
+        //Zoom in the map 
+        function bounry(user,table,sqlfilter,layer,map) {
+            var sqlExtent = new cartodb.SQL(user);
+            //regresa la coordenada maxima de mi extend de la geometria
+            var sql = "select max(xmax) as xmax,min(xmin) as xmin,max(ymax) as ymax,min(ymin) as ymin from (select ST_Xmax(ST_Extent(the_geom)) as xmax,ST_Xmin(ST_Extent(the_geom)) as xmin,ST_Ymax(ST_Extent(the_geom)) as ymax,ST_Ymin(ST_Extent(the_geom)) as ymin from " + table + " where " + sqlfilter + ") as ext"
+            // console.log(sql);
+            sqlExtent.execute(sql).done(function(data) {
+                if (data.rows[0].ymax != '' && data.rows[0].ymin != '' && data.rows[0].xmax && data.rows[0].xmin != '') {
+                    var southWest = L.latLng(data.rows[0].ymax, data.rows[0].xmin),
+                    northEast = L.latLng(data.rows[0].ymin, data.rows[0].xmax),
+                    bounds = L.latLngBounds(southWest, northEast);
+                    map.fitBounds(bounds);
+                    selectFeature(table,sqlfilter,layer);
+                    // geojsondownload(table,sqlfilter,layer);
+                } else {
+                    console.log("errors: en la ejecucion del sql en cartodb");
+                }
+            }).error(function(errors) {
+                console.log("errors:" + errors);
+            });
+        }
+
+        //Select the poligon
+        function selectFeature(table,sqlfilter,layer){
+
+            if(map.hasLayer(sltfeature)){
+                map.removeLayer(sltfeature);
+            };
+            // Get CartoDB selection as GeoJSON and Add to Map
+            $.getJSON("https://develop.carto.com/api/v2/sql?format=GeoJSON&q=select * from " + table + " where " + sqlfilter, function(data){
+            
+                sltfeature = L.geoJson(data,{
+                    style: function (feature) {
+                        return {color:'#850200',
+                        weight: 5,
+                        opacity:0.5,
+                        fillColor:'#C4C5C6',
+                        fillOpacity:0.2}
+                    },
+                    onEachFeature: function (feature, layer) {
+                        layer.on({
+                            click: function select(e) {
+                                select(e.target);
+                           }
+                        });
+                    }
+                }).addTo(map);
+                sltfeature.bringToBack();
+            });
+        }
+        
 });
 </script>
 </body>
