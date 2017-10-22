@@ -60,24 +60,12 @@
 <body>
 <div>
     <select class="form-control deleg" name="selectDel" id="selectDel">
-        <!-- <option value="">TODAS</option>
-        <option value="2" data-lat="19.4853167546877" data-lng="-99.1820729102214">AZCAPOTZALCO</option>
-        <option value="3" data-lat="19.3806362549985" data-lng="-99.1611326141866">BENITO JUAREZ</option>
-        <option value="1" data-lat="19.345588996402" data-lng="-99.2378692104112">ALVARO OBREGON</option>
-        <option value="16" data-lat="19.240217770539" data-lng="-99.0916576113265">XOCHIMILCO</option>
-        <option value="4" data-lat="19.3266341665147" data-lng="-99.150335760299">COYOACAN</option>
-        <option value="5" data-lat="19.3231754659492" data-lng="-99.3107267391573">CUAJIMALPA</option>
-        <option value="6" data-lat="19.4313723132379" data-lng="-99.1490420681939">CUAUHTEMOC</option>
-        <option value="7" data-lat="19.5040412420979" data-lng="-99.1158738074004">GUSTAVO A. MADERO</option>
-        <option value="8" data-lat="19.3969183944221" data-lng="-99.0943265445642">IZTACALCO</option>
-        <option value="9" data-lat="19.3490212121847" data-lng="-99.0565144863756">IZTAPALAPA</option>
-        <option value="10" data-lat="19.2699244753261" data-lng="-99.2726920780272">MAGDALENA CONTRERAS</option>
-        <option value="11" data-lat="19.4285038332166" data-lng="-99.2047202939644">MIGUEL HIDALGO</option>
-        <option value="12" data-lat="19.1400880550359" data-lng="-99.0482120531187">MILPA ALTA</option>
-        <option value="13" data-lat="19.2769497908826" data-lng="-99.0028123071402">TLAHUAC</option>
-        <option value="14" data-lat="19.1985168784299" data-lng="-99.2067309947676">TLALPAN</option>
-        <option value="15" data-lat="19.4305420760671" data-lng="-99.0929907962767">VENUSTIANO CARRANZA</option> -->
     </select>
+    <select class="form-control colon" name="selectCol" id="selectCol">
+    </select>
+    <select class="form-control calle" name="selectCal" id="selectCal">
+    </select>
+    <input type="button" name="Buscar" value="Buscar" id="dgiFilterSearch">
 </div>
     <p></p>
 </div>
@@ -151,19 +139,35 @@ $(function(){
                         }//Fin for(idx in data.rows){
                 });//Fin .on("done",function(data){
 
-                $('#selectDel').on("change",function(e){
+                $('#selectDel').on("change",function(e){//cambio de opcion select
                     var optiondelegacion = $("#selectDel").val();
-                       // var intersql = "SELECT COUNT(*) FROM delegaciones_df dlg INNER JOIN sismo_capas sis ON ST_Contains(sis.the_geom,dlg.the_geom) WHERE dlg.cartodb_id = "+optiondelegacion;
 
-                            // var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q=SELECT * FROM "finanzasdf-admin".sismo_capas_edit_seduvi'+where;
-                            // var intersql = "SELECT * FROM delegaciones_df dlg INNER JOIN sismo_capas sis ON ST_Contains(sis.the_geom,dlg.the_geom) WHERE dlg.cartodb_id = "+optiondelegacion;
-                            var intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
-                            // strsql = "SELECT COUNT(*) FROM alertas_alto_bajo_impacto alert INNER JOIN sectores sec ON ST_Contains(sec.the_geom,alert.the_geom) WHERE sec.nombre = '"+optionSectores+"'";
+                    var optioncolonia = $("#selectCol").empty();
+
+                    var optioncalle = $("#selectCal").empty();
+
+                            var objsql = new cartodb.SQL({ user : 'finanzasdf-admin' });
                             
-                            // console.log(intersql);
+                            objsql.execute("SELECT colonias_ok.the_geom,colonias_ok.the_geom_webmercator,colonias_ok.nombre,colonias_ok.cartodb_id,colonias_ok.created_at,colonias_ok.updated_at,colonias_ok.nombre_id,colonias_ok.data_observatory,colonias_ok.nombre_cap FROM colonias_ok INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,colonias_ok.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion+" ORDER BY colonias_ok.nombre ASC")
+                            .on("done",function(data){
+
+                                if (Object.keys(data.rows).length <= 0) {
+                                    $("<option />",{"value":"*","text":'Sin colonias...'}).appendTo("#selectCol");
+                                } else {
+                                    $("<option />",{"value":"*","text":'Selecciona un colina...'}).appendTo("#selectCol");
+
+                                }//Fin else
+
+                                for(idx in data.rows){
+                                    $("<option />",{"value":data.rows[idx].cartodb_id,"text":data.rows[idx].nombre}).appendTo("#selectCol");
+                                }//Fin for(idx in data.rows){
+                            });//fin on "done"
+
+                        
+                            var intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
+                            
                             var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q='+intersql;
                             
-                            // console.log(strsql);//consulta con api
                             var semaforo;
 
                             $.getJSON(strsql, function(data) {
@@ -208,13 +212,32 @@ $(function(){
                                 }
                               });
                               map.addLayer(drawnItems);
-                            });
+                            });//FIN getJSON
 
-                        bounry({user: "finanzasdf-admin"}, "delegaciones_df", "cartodb_id = "+optiondelegacion, "", map)
+                });//onchage delegacion
 
-                })
+                $('#selectCol').on("change",function(e){
+                    optioncolonia = $("#selectCol").val();
+                    optiondelegacion = $("#selectDel").val();
+                    optioncalle = $("#selectCal").empty();
 
-            // var where = " WHERE deleg='cMilpaAlta'";
+                    var objsql = new cartodb.SQL({ user : 'finanzasdf-admin' });
+
+                    // objsql.execute("SELECT calles.cartodb_id,calles.the_geom,calles.the_geom_webmercator,calles.mslink,calles.rotation,calles.text FROM calles INNER JOIN colonias_ok ON ST_Contains(colonias_ok.the_geom,calles.the_geom) WHERE colonias_ok.cartodb_id ="+optioncolonia+" ORDER BY calles.text ASC ")
+                    objsql.execute("SELECT DISTINCT(calles.text) FROM calles INNER JOIN colonias_ok ON ST_Contains(colonias_ok.the_geom,calles.the_geom) WHERE colonias_ok.cartodb_id ="+optioncolonia+" ORDER BY calles.text ASC ")
+                    .on("done",function(data){
+                            if (Object.keys(data.rows).length <= 0) {
+                                $("<option />",{"value":"*","text":'Sin calles...'}).appendTo("#selectCal");
+                            } else {
+                                $("<option />",{"value":"*","text":'Selecciona un calle...'}).appendTo("#selectCal");
+                            }//Fin else
+
+                            for(idx in data.rows){
+                                $("<option />",{"value":data.rows[idx].text,"text":data.rows[idx].text}).appendTo("#selectCal");
+                            }
+                    });//fin on "done"
+
+                });//fin colonia
 
             var drawControl = new L.Control.Draw({
                 position: 'topleft',
@@ -232,36 +255,6 @@ $(function(){
                 }
             });
             map.addControl(drawControl);
-            // console.log("Recibida1 "+layer);
-
-            // map.on(L.Draw.Event.CREATED, function (e) {
-            /*
-                map.on('draw:created', function (e) {
-                    var type = e.layerType,
-                    console.log(e.layerType);
-                        layer = e.layer;
-                        console.log(layer);
-                        // var layer = e.layers;
-
-                    if (type === 'marker') {
-                        layer.bindPopup('A popup!');
-                    }
-
-                    map.addLayer(layer);
-                });
-            */
-
-
-            /*se cambio la funcion de edicion 
-            map.on(L.Draw.Event.EDITED, function (e) {
-                var layers = e.layers;
-                var countOfEditedLayers = 0;
-                layers.eachLayer(function (layer) {
-                    countOfEditedLayers++;
-                });
-                // console.log("Edited " + countOfEditedLayers + " layers");
-            });
-            */
 
             map.on('draw:edited', function (e) {
                 var layers = e.layers;
@@ -298,39 +291,7 @@ $(function(){
                 });
             });
 
-            // L.DomUtil.get('changeColor').onclick = function () {
-            //     drawControl.setDrawingOptions({rectangle: {shapeOptions: {color: '#004a80'}}});
-            // };
-
-            // map.on('click', function(e) {
-            //     alert("longitud"+e.latlng.lat+", latitud"+e.latlng.lng)
-               // $("#latitude").val(e.latlng.lat);
-               // $("#longitude").val(e.latlng.lng);
-            // });
-
-
-            /*function fn_savegeom(SqlJson){
-                alert(JSON.stringify(SqlJson));
-                var geom = "ST_SetSRID(ST_GeomFromGeoJSON('"+JSON.stringify(SqlJson)+"'),4326)";    
-                var sql_statement ="";
-                switch(SqlJson.type){
-                    case "Point":
-                        // sql_statement = "INSERT INTO digitalizacionpoint (description,name,the_geom) VALUES('prueba','prueba',"+geom+")"; 
-                        break
-                    case "Linestring":
-                        // sql_statement = "INSERT INTO digitalizacion (description,name,the_geom) VALUES('prueba','prueba',"+geom+")";
-                        break;
-                }
-                // $.getJSON('https://valrapa.cartodb.com/api/v2/sql/?q='+sql_statement+'&api_key=6433e4d1a9ba1f251b81f2cf70c8b34ec7e13344', function(data) {
-                $.getJSON('https://finanzasdf-admin.carto.com/api/v2/sql/?q='+sql_statement+'&api_key=9636b95f3e6c01a780c65a869e491303ed330f9c', function(data) {
-                     $.each(data.rows, function(key, val) {
-                         alert("llave "+key+" "+val);
-                     });
-                });
-            }*/
         getPopupContent(lyrs);
-
-            
 
         function getPopupContent(layer) {
             // Marker - add lat/long
@@ -362,18 +323,6 @@ $(function(){
             }
             return null;
         };
-
-        /*
-            map.on(L.Draw.Event.CREATED, function(event) {
-            // map.on("draw.created", function(event) {
-                var layer = event.layer;
-                var content = getPopupContent(layer);
-                if (content !== null) {
-                    layer.bindPopup(content);
-                }
-                drawnItems.addLayer(layer);
-            });
-        */
        
         function coords(position){
             var bounds = new cartodb.SQL({
@@ -423,7 +372,7 @@ $(function(){
             var sqlExtent = new cartodb.SQL(user);
             //regresa la coordenada maxima de mi extend de la geometria
             var sql = "select max(xmax) as xmax,min(xmin) as xmin,max(ymax) as ymax,min(ymin) as ymin from (select ST_Xmax(ST_Extent(the_geom)) as xmax,ST_Xmin(ST_Extent(the_geom)) as xmin,ST_Ymax(ST_Extent(the_geom)) as ymax,ST_Ymin(ST_Extent(the_geom)) as ymin from " + table + " where " + sqlfilter + ") as ext"
-            // console.log(sql);
+            console.log(sql);
             sqlExtent.execute(sql).done(function(data) {
                 if (data.rows[0].ymax != '' && data.rows[0].ymin != '' && data.rows[0].xmax && data.rows[0].xmin != '') {
                     var southWest = L.latLng(data.rows[0].ymax, data.rows[0].xmin),
@@ -469,6 +418,132 @@ $(function(){
             });
         }
         
+
+            function getSearch(){
+                var optiondelegacion = $("#selectDel").val();
+                var optioncolonia = $("#selectCol").val();
+                var optioncalle = $("#selectCal").val();
+
+                if (optioncalle != "*"){
+                    // bounry(this._user,"basecalle","delegacion = "+ del +" and colonia = " + col + " and nombre = '" + calle +"'",this._layers,this._map);
+                        /*
+                            var intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
+                            
+                            var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q='+intersql;
+                            
+                            var semaforo;
+
+                            $.getJSON(strsql, function(data) {
+                              geojsonLayer = L.geoJson(data, {
+                                onEachFeature: function (feature, layer) {
+
+                                    if (feature.geometry.type === 'Point') {
+                                        // layer.bindPopup('A popup!');
+                                        // feature.properties.clas_global
+                                        switch(feature.properties.clas_global) {
+                                            case 0:
+                                                semaforo = "Verde";
+                                                break;
+                                            case 1:
+                                                semaforo = "Rojo";
+                                                break;
+                                            case 2:
+                                                semaforo = "Amarillo";
+                                                break;
+                                            case 3:
+                                                semaforo = "Sin captura";
+                                                break;
+                                            case 4:
+                                                semaforo = "Rosa";
+                                                break;
+                                            case 'NULL':
+                                                semaforo = "N/P";
+                                        } 
+
+                                        layer.bindPopup("<b>ID carto: </b>"+feature.properties.cartodb_id+"<br>"+
+                                            "<b>Punto: </b>"+semaforo+"<br>"+
+                                            "<b>ID registro: </b>"+feature.properties.idregistro+"<br>"+
+                                            "<b>Latitud: </b>"+feature.properties.lat+"<br>"+
+                                            "<b>Longitud: </b>"+feature.properties.lng+"<br>");
+                                    }
+
+                                  layer.cartodb_id=feature.properties.cartodb_id;
+                                  drawnItems.addLayer(layer);
+                                }
+                              });
+                              map.addLayer(drawnItems);
+                            });//FIN getJSON
+                        */
+                        bounry({user: "finanzasdf-admin"}, "calles", "text = '"+optioncalle+"'", "", map)
+
+                } else if (optioncolonia != "*") {
+                    // bounry(this._user,"basecol","delegacion = "+ del +" and mslink = " + col,this._layers,this._map);
+                        /*
+                            // var intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
+                            var intersql = "SELECT colonias_ok.the_geom,colonias_ok.the_geom_webmercator,colonias_ok.nombre,colonias_ok.cartodb_id,colonias_ok.created_at,colonias_ok.updated_at,colonias_ok.nombre_id,colonias_ok.data_observatory,colonias_ok.nombre_cap FROM colonias_ok INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,colonias_ok.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
+
+                            var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q='+intersql;
+                            
+                            var semaforo;
+
+                            $.getJSON(strsql, function(data) {
+                                // console.log(data);
+                              geojsonLayer = L.geoJson(data, {
+                                onEachFeature: function (feature, layer) {
+                                  // console.log(layer);
+                                  // console.log(feature);
+                                    if (feature.geometry.type === 'Point') {
+                                        // layer.bindPopup('A popup!');
+                                        // feature.properties.clas_global
+                                        switch(feature.properties.clas_global) {
+                                            case 0:
+                                                semaforo = "Verde";
+                                                break;
+                                            case 1:
+                                                semaforo = "Rojo";
+                                                break;
+                                            case 2:
+                                                semaforo = "Amarillo";
+                                                break;
+                                            case 3:
+                                                semaforo = "Sin captura";
+                                                break;
+                                            case 4:
+                                                semaforo = "Rosa";
+                                                break;
+                                            case 'NULL':
+                                                semaforo = "N/P";
+                                        } 
+
+                                        layer.bindPopup("<b>ID carto: </b>"+feature.properties.cartodb_id+"<br>"+
+                                            "<b>Punto: </b>"+semaforo+"<br>"+
+                                            "<b>ID registro: </b>"+feature.properties.idregistro+"<br>"+
+                                            "<b>Latitud: </b>"+feature.properties.lat+"<br>"+
+                                            "<b>Longitud: </b>"+feature.properties.lng+"<br>");
+                                    }
+
+                                    // map.addLayer(layer);
+                                  layer.cartodb_id=feature.properties.cartodb_id;
+                                  drawnItems.addLayer(layer);
+                                }
+                              });
+                              map.addLayer(drawnItems);
+                            });//FIN getJSON
+
+                        */
+                        bounry({user: "finanzasdf-admin"}, "colonias_ok", "cartodb_id = "+optioncolonia, "", map)
+                } else if (optiondelegacion != "*" ) {
+                    // bounry(this._user,"basedel","conse = "+ del,this._layers,this._map);
+
+
+                        bounry({user: "finanzasdf-admin"}, "delegaciones_df", "cartodb_id = "+optiondelegacion, "", map)
+                }
+            }
+
+            $("#dgiFilterSearch").on("click",function(evt){
+                getSearch();
+            });
+
 });
 </script>
 </body>
