@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sismos Capas</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" /> <!-- movil -->
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>  <!-- caracteres -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"> <!-- compativilidad -->
+    <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- dispositivos -->
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.15/themes/css/cartodb.css" />
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.15/cartodb.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.3/leaflet.draw.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.3/leaflet.draw.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/style.css">
+    <link type="text/css" rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="Leaflet.ExtraMarkers/dist/css/leaflet.extra-markers.min.css">
+    <script src="Leaflet.ExtraMarkers/dist/js/leaflet.extra-markers.min.js"></script>
+    <script src="main.js" type="text/javascript"></script>
+
+</head>
+<body>
+    <div class="full-width full-width-extra">
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-2 columna">
+                <span class="cabezera_">
+                    <a href="https://sig.cdmx.gob.mx">
+                    </a>
+                </span>
+                <a href="#" id="ctrl_layerpanel" class="on" title="<lang>Panel de capas</lang>"></a>
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 columna">
+                    <span class="cabezera_">
+                        <a href="https://sig.cdmx.gob.mx">
+                            <img id="logo" src="css/images/MX_logo_GISCDMX_Smon-cab.svg" alt="Tu CDMX">
+                        </a>
+                    </span>
+            </div>
+    </div>
+    <br>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 columna">
+            <select class="form-control deleg" name="selectDel" id="selectDel">
+            </select>
+            <select class="form-control colon" name="selectCol" id="selectCol">
+            </select>
+            <select class="form-control calle" name="selectCal" id="selectCal">
+            </select>
+            <input type="button" name="Buscar" value="Buscar" id="dgiFilterSearch">
+            <br>
+            <br>
+            <div id="map" style="height: 700px;"></div>
+            </div>
+        </div>
+    </div>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <div class="copyright">
+                        SIG-CDMX @ 2017 Gobierno de CDMX
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
