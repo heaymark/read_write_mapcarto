@@ -45,6 +45,11 @@ $(function(){
                 //Empieza LAS DELEGACIIONES
                 objsql.execute("SELECT * FROM delegaciones_df ORDER BY nombre ASC")
                 .on("done",function(data){
+					$('.js-example-basic-single').select2({
+						data:data
+					});
+					$('.js-example-basic-single2').select2();
+
                     $("<option />",{"value":"*","text":'Selecciona una delegacion...'}).appendTo("#selectDel");
                         for(idx in data.rows){
                             $("<option />",{"value":data.rows[idx].cartodb_id,"text":data.rows[idx].nombre}).appendTo("#selectDel");
@@ -63,6 +68,10 @@ $(function(){
                             
                             objsql.execute("SELECT colonias_ok.the_geom,colonias_ok.the_geom_webmercator,colonias_ok.nombre,colonias_ok.cartodb_id,colonias_ok.created_at,colonias_ok.updated_at,colonias_ok.nombre_id,colonias_ok.data_observatory,colonias_ok.nombre_cap FROM colonias_ok INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,colonias_ok.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion+" ORDER BY colonias_ok.nombre ASC")
                             .on("done",function(data){
+								$('.js-example-basic-single2').select2({
+									data:data
+								});
+								$('.js-example-basic-single3').select2();
 
                                 if (Object.keys(data.rows).length <= 0) {
                                     $("<option />",{"value":"*","text":'Sin colonias...'}).appendTo("#selectCol");
@@ -89,6 +98,9 @@ $(function(){
                     objsql.execute('SELECT  DISTINCT("finanzasdf-admin".basecalle_copy.nombrecalle) FROM "finanzasdf-admin".basecalle_copy INNER JOIN colonias_ok ON ST_Contains(colonias_ok.the_geom,"finanzasdf-admin".basecalle_copy.the_geom) WHERE colonias_ok.cartodb_id = '+optioncolonia+' ORDER BY "finanzasdf-admin".basecalle_copy.nombrecalle ASC')
                     .on("done",function(data){
                         // console.log(data);
+							$('.js-example-basic-single3').select2({
+								data:data
+							});
                             if (Object.keys(data.rows).length <= 0) {
                                 $("<option />",{"value":"*","text":'Sin calles...'}).appendTo("#selectCal");
                             } else {
@@ -175,7 +187,7 @@ $(function(){
             
                 sltfeature = L.geoJson(data,{
                     style: function (feature) {
-	                    return {color:'#03f',
+	                    return {color:'#0BF',
 	                        weight: 5,
 	                        opacity:0.5,
 	                        fillColor:'#C4C5C6',
@@ -216,23 +228,9 @@ $(function(){
 
         $("#dgiFilterSearch").on("click",function(evt){
             getSearch();
-                // console.log('Click fired!'); // Seeing this in your console, event works
-                // console.log(drawnItems); // Should return featureGroup instance, scope ok
-                // console.log(lyrs); // Should return polygon instance, scope ok
-                // // If all of the above works, this should too
-                // drawnItems.removeLayer(lyrs);
-                // drawnItems.removeLayer(drawnItems) 
-                // drawControlEditOnly.removeFrom(map)
-                // map.removeControl(drawControl);
 
-                // drawnItems.removeLayer()
-                // console.log(drawnItems._layers);
                 map.removeLayer(drawnItems);
-                // map.hasLayer(drawnItems);
-                // console.log(map.hasLayer(drawnItems));
-                // if (map.hasLayer(drawnItems)) {
-                //     map.removeLayer(drawnItems);
-                // }
+
                 layerleatflets();
                 
         });//fin  on click
@@ -247,8 +245,6 @@ $(function(){
 
             	if (optioncalle != "*" && optioncalle != null ){
                     intersql = 'SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) INNER JOIN colonias_ok ON ST_Contains(colonias_ok.the_geom,sismo_capas_edit_seduvi.the_geom) INNER JOIN "finanzasdf-admin".basecalle_copy ON ST_Contains("finanzasdf-admin".basecalle_copy.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE "finanzasdf-admin".basecalle_copy.nombre = '+optioncalle;
-                    // intersql = 'SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN "finanzasdf-admin".basecalle_copy ON ST_Contains("finanzasdf-admin".basecalle_copy.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE "finanzasdf-admin".basecalle_copy.nombre = '+optioncalle;
-                    // intersql = 'SELECT "finanzasdf-admin".basecalle_copy.nombrecalle, "finanzasdf-admin".basecalle_copy.the_geom, "finanzasdf-admin".basecalle_copy.the_geom_webmercator, "finanzasdf-admin".basecalle_copy.coloniaid, "finanzasdf-admin".basecalle_copy.delegacionesid FROM "finanzasdf-admin".basecalle_copy  WHERE "finanzasdf-admin".basecalle_copy.coloniaid = '+optioncolonia+' AND "finanzasdf-admin".basecalle_copy.delegacionesid = '+optiondelegacion+' AND "finanzasdf-admin".basecalle_copy.nombrecalle = '+optioncalle+' ORDER BY "finanzasdf-admin".basecalle_copy.nombrecalle ASC';
 
                 } else if(optioncolonia != "*"){
                     intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) INNER JOIN colonias_ok ON ST_Contains(colonias_ok.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE colonias_ok.cartodb_id = "+optioncolonia;
@@ -256,30 +252,50 @@ $(function(){
                 }else if (optiondelegacion != "*" ){
                     intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
                 }
-            
-
-            // intersql = "SELECT sismo_capas_edit_seduvi.the_geom_webmercator, sismo_capas_edit_seduvi.cartodb_id, sismo_capas_edit_seduvi.the_geom, sismo_capas_edit_seduvi.lat, sismo_capas_edit_seduvi.idregistro, sismo_capas_edit_seduvi.lng, sismo_capas_edit_seduvi.dependencia, sismo_capas_edit_seduvi.capa, sismo_capas_edit_seduvi.clas_global, sismo_capas_edit_seduvi.deleg, sismo_capas_edit_seduvi.estado, sismo_capas_edit_seduvi.cuentapredial, sismo_capas_edit_seduvi.coincidencia, sismo_capas_edit_seduvi.lat_predio, sismo_capas_edit_seduvi.lng_predio FROM sismo_capas_edit_seduvi INNER JOIN delegaciones_df ON ST_Contains(delegaciones_df.the_geom,sismo_capas_edit_seduvi.the_geom) WHERE delegaciones_df.cartodb_id = "+optiondelegacion;
 
             var strsql ='https://finanzasdf-admin.carto.com/api/v2/sql/?format=geojson&q='+intersql;
             
             var semaforo;
-
+            var semaforopoint
 
             $.getJSON(strsql, function(data) {
-	            // drawnItems.removeLayer();
+
 	            drawnItems.eachLayer(function (layer) {
 	                drawnItems.removeLayer(layer);
 	            });
                 
 				geojsonLayer = L.geoJson(data, {
-					pointToLayer: function(geoJsonPoint, latlng) {
-					    return L.marker(latlng);
-					 	//var redMarker = L.ExtraMarkers.icon({
-						// 	icon: 'fa-coffee',
-						// 	markerColor: 'red',
-						// 	shape: 'square',
-						// 	prefix: 'fa'
-						// });
+					pointToLayer: function(feature, latlng) {
+						// console.log(feature.properties.clas_global);
+				        switch(feature.properties.clas_global) {
+				            case 0:
+				                semaforopoint = "#12BF38";
+				                break;
+				            case 1:
+				                semaforopoint = "#DE2220";
+				                break;
+				            case 2:
+				                semaforopoint = "#F9FF00";
+				                break;
+				            case 3:
+				                semaforopoint = "#7F7F7F";
+				                break;
+				            case 4:
+				                semaforopoint = "#E41ACE";
+				                break;
+				            case 'NULL':
+				                semaforopoint = "#F2F2F2";
+				        } 
+						var geojsonMarkerOptions = {
+						    radius: 5,
+						    fillColor: semaforopoint,
+						    color: "#000",
+						    weight: 1,
+						    opacity: 1,
+						    fillOpacity: 0.8
+						};
+						return L.circleMarker(latlng, geojsonMarkerOptions);
+					    // return L.marker(latlng);
 					},
 					onEachFeature: function (feature, layer) {
 					    if (feature.geometry.type === 'Point') {

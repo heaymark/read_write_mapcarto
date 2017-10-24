@@ -1,0 +1,86 @@
+.container {
+	
+}
+
+.full-width {	
+	width: 100%;
+	color: #fff;
+	background-color: #400080;
+	padding: 20px;
+}
+
+.full-width-extra {
+	color: #000;
+	background-color: #e5007d;
+	height: 65px;
+}
+
+#maps{
+    float: left;
+    width: 48%;
+    height: 40%;
+    padding: 0px;
+    margin: 0px;
+}
+
+
+.copyright {
+    color: #fff;
+    float: left;
+    font-size: 12px;
+    opacity: .8;
+    line-height: 24px;
+}
+
+.titulovisor{
+	font-weight: 300;
+	font-family: 'Open Sans',sans-serif;
+	font-size: 16px;
+	color: #fff;
+	line-height: 24px;
+}
+
+.tipovisor{
+	font-weight: 700;
+	font-size: .75em;
+	line-height: 1.75em;
+	color: rgba(255,255,255,.5);
+
+}
+
+#logouser{
+	display: block;
+	font-size: .75em;
+	color: #fff;
+	align-content: center;
+}
+
+footer {
+  background-color: black;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40px;
+  color: white;
+}
+
+#footer {
+   position:fixed;
+   left:0px;
+   bottom:0px;
+   height:24px;
+   width:100%;
+   /*background:#999;*/
+   background-color: #27272e;
+
+}
+
+.footer-bottom {
+    position: absolute;
+    bottom: 0;
+    background-color: #27272e;
+    padding-left: 6px;
+    height: 24px;
+    width: 100%;
+    z-index: 1000;
+}
